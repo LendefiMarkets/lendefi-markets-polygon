@@ -1,0 +1,25 @@
+[profile.default]
+solc_version = '0.8.23'
+src = "contracts"
+out = "out"
+libs = ["lib"]
+build_info = true
+extra_output = ["storageLayout"]
+optimizer = true
+optimizer_runs = 8
+
+[fuzz]
+runs = 1000
+
+[rpc_endpoints]
+mainnet = "https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+sepolia = "${BASE_SEPOLIA_RPC_URL}"
+anvil = "http://localhost:8545"
+
+[profile.rpc_storage_caching]
+chains = "all"  # or specific chain IDs
+endpoints = "all"  # or specific URLs
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_API_KEY}", chain = "mainnet" }
+sepolia = { key = "${ETHERSCAN_API_KEY}", chain = "sepolia" }
