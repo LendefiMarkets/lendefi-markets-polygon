@@ -108,19 +108,36 @@
         "tokens": {
             "usdc": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
             "usdt": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-            "usd1": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
             "weth": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
             "wbtc": "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
-            "link": "0xb0897686c545045aFc77CF20eC7A532E3120E0F1"
+            "link": "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39",
+            "wpol": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+            "usdc.e": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
         },
         "pools": {
-            "usdc-usdt": "0xC82819F72AA88F7c2977bC19bC552C8a1a7f0B3a",
-            "usdt-weth": "0x0000000000000000000000000000000000000000",
-            "weth-usdc": "0x45dDa9cb7c25131DF268515131f647d726f50608",
-            "wbtc-usdc": "0x0000000000000000000000000000000000000000",
-            "link-weth": "0x0000000000000000000000000000000000000000",
-            "link-usdc": "0x0000000000000000000000000000000000000000",
-            "usd1-usdc": "0xC82819F72AA88F7c2977bC19bC552C8a1a7f0B3a"
+            "usdc-usdt": "0xDaC8A8E6DBf8c690ec6815e0fF03491B2770255D",
+            "usdt-weth": "0x4CcD010148379ea531D6C587CfDd60180196F9b1",
+            "weth-usdc": "0xA4D8c89f0c20efbe54cBa9e7e7a7E509056228D9",
+            "wbtc-usdc.e": "0xeEF1A9507B3D505f0062f2be9453981255b503c8",
+            "wbtc-weth": "0x50eaEDB835021E4A108B7290636d62E9765cc6d7",
+            "link-weth": "0x3e31AB7f37c048FC6574189135D108df80F0ea26",
+            "link-usdc": "0x94Ab9E4553fFb839431E37CC79ba8905f45BfBeA",
+            "wpol-usdt": "0x9B08288C3Be4F62bbf8d1C20Ac9C5e6f9467d8B7",
+            "wpol-usdc": "0xB6e57ed85c4c9dbfEF2a68711e9d6f36c56e0FcB",
+            "wpol-weth": "0x167384319B41F7094e62f7506409Eb38079AbfF8",
+            "usdc.e-usdc": "0xD36ec33c8bed5a9F7B6630855f1533455b98a418"
+        },
+        "oracles": {
+            "btc-eth": "0x19b0F0833C78c0848109E3842D34d2fDF2cA69BA",
+            "btc-usd": "0xc907E116054Ad103354f2D350FD2514433D57F6f",
+            "usdt-usd": "0x0A6513e40db6EB1b165753AD52E80663aeA50545",
+            "usdt-eth": "0xf9d5AAC6E5572AEFa6bd64108ff86a222F69B64d",
+            "usdc-eth": "0xefb7e6be8356cCc6827799B6A7348eE674A80EaE",
+            "usdc-usd": "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7",
+            "link-wpol": "0x5787BefDc0ECd210Dfa948264631CD53E68F7802",
+            "link-usd": "0xd9FFdb71EbE7496cC440152d43986Aae0AB76665",
+            "wbtc-usd": "0xDE31F8bFBD8c84b5360CFACCa3539B938dd78ae6",
+            "uni-usd": "0xdf0Fb4e4F928d2dCB76f438575fDD8682386e13C"
         }
     }
 }
