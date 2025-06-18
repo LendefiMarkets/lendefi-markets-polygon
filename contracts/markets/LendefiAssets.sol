@@ -64,12 +64,12 @@ contract LendefiAssets is
     address public porFeed;
     /// @notice Address of the timelock contract
     address public timelock;
-    /// @notice Network-specific USDC address
-    address public networkUSDC;
+    /// @notice Network-specific USDT address
+    address public networkUSDT;
     /// @notice Network-specific WETH address
     address public networkWETH;
-    /// @notice Uniswap pool address for USDC/WETH
-    address public usdcWethPool;
+    /// @notice Uniswap pool address for USDT/WETH
+    address public usdtWethPool;
 
     /// @notice Information about the currently pending upgrade request
     /// @dev Stores implementation address and scheduling details
@@ -137,9 +137,9 @@ contract LendefiAssets is
      * @param marketOwner Address of the market owner who will have management privileges
      * @param porFeed_ Proof of Reserve feed address
      * @param coreAddress_ Address of the core protocol contract
-     * @param networkUSDC_ Network-specific USDC address for oracle validation
+     * @param networkUSDT_ Network-specific USDT address for oracle validation
      * @param networkWETH_ Network-specific WETH address for oracle validation
-     * @param usdcWethPool_ Network-specific USDC/WETH pool for price reference
+     * @param usdtWethPool_ Network-specific USDT/WETH pool for price reference
      * @custom:security Sets up the initial access control roles:
      * - DEFAULT_ADMIN_ROLE: timelock_
      * - MANAGER_ROLE: timelock_, marketOwner
@@ -157,13 +157,13 @@ contract LendefiAssets is
         address marketOwner,
         address porFeed_,
         address coreAddress_,
-        address networkUSDC_,
+        address networkUSDT_,
         address networkWETH_,
-        address usdcWethPool_
+        address usdtWethPool_
     ) external initializer {
         if (
             timelock_ == address(0) || marketOwner == address(0) || porFeed_ == address(0) || coreAddress_ == address(0)
-                || networkUSDC_ == address(0) || networkWETH_ == address(0) || usdcWethPool_ == address(0)
+                || networkUSDT_ == address(0) || networkWETH_ == address(0) || usdtWethPool_ == address(0)
         ) {
             revert ZeroAddressNotAllowed();
         }
@@ -196,9 +196,9 @@ contract LendefiAssets is
         lendefiInstance = IPROTOCOL(coreAddress_);
 
         // Set network-specific addresses
-        networkUSDC = networkUSDC_;
+        networkUSDT = networkUSDT_;
         networkWETH = networkWETH_;
-        usdcWethPool = usdcWethPool_;
+        usdtWethPool = usdtWethPool_;
 
         timelock = timelock_;
         version = 1;
@@ -914,14 +914,7 @@ contract LendefiAssets is
      * @return The price with normalized decimals (1e6)
      */
     function _getChainlinkPrice(address asset) internal view returns (uint256) {
-        if (block.chainid == LendefiConstants.BASE_CHAIN_ID) {
-            (, int256 answer, uint256 startedAt,,) =
-                AggregatorV3Interface(LendefiConstants.SEQUENCER_FEED).latestRoundData();
-            if (answer != 0) revert SequencerDown();
-            if (block.timestamp - startedAt <= LendefiConstants.GRACE_PERIOD) {
-                revert GracePeriodNotOver(block.timestamp - startedAt, LendefiConstants.GRACE_PERIOD);
-            }
-        }
+        // Polygon doesn't have a sequencer, so no sequencer uptime check needed
 
         address oracle = assetInfo[asset].chainlinkConfig.oracleUSD;
         (uint80 roundId, int256 price,, uint256 timestamp, uint80 answeredInRound) =
@@ -958,7 +951,7 @@ contract LendefiAssets is
             revert InvalidUniswapConfig(asset);
         }
 
-        tokenPriceInUSD = getAnyPoolTokenPriceInUSD(config.pool, asset, usdcWethPool, config.twapPeriod); // Price on 1e6 scale, USDC
+        tokenPriceInUSD = getAnyPoolTokenPriceInUSD(config.pool, asset, usdtWethPool, config.twapPeriod); // Price on 1e6 scale, USDT
 
         if (tokenPriceInUSD <= 0) {
             revert OracleInvalidPrice(config.pool, int256(tokenPriceInUSD));
@@ -1104,9 +1097,9 @@ contract LendefiAssets is
         // Validate that the asset is in the pool
         (address token0, address token1) = _validateAssetInPool(asset, uniswapPool);
 
-        // Ensure pool contains network USDC or WETH for pricing
+        // Ensure pool contains network USDT, USDC, or WETH for pricing
         bool hasValidPairing =
-            (token0 == networkUSDC || token0 == networkWETH) || (token1 == networkUSDC || token1 == networkWETH);
+            (token0 == networkUSDT || token0 == networkWETH) || (token1 == networkUSDT || token1 == networkWETH);
         if (!hasValidPairing) {
             string memory symbol0 = IERC20Metadata(token0).symbol();
             string memory symbol1 = IERC20Metadata(token1).symbol();
