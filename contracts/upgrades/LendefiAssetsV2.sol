@@ -914,14 +914,7 @@ contract LendefiAssetsV2 is
      * @return The price with normalized decimals (1e6)
      */
     function _getChainlinkPrice(address asset) internal view returns (uint256) {
-        if (block.chainid == LendefiConstants.BASE_CHAIN_ID) {
-            (, int256 answer, uint256 startedAt,,) =
-                AggregatorV3Interface(LendefiConstants.SEQUENCER_FEED).latestRoundData();
-            if (answer != 0) revert SequencerDown();
-            if (block.timestamp - startedAt <= LendefiConstants.GRACE_PERIOD) {
-                revert GracePeriodNotOver(block.timestamp - startedAt, LendefiConstants.GRACE_PERIOD);
-            }
-        }
+        // Polygon doesn't have a sequencer, so no sequencer uptime check needed
 
         address oracle = assetInfo[asset].chainlinkConfig.oracleUSD;
         (uint80 roundId, int256 price,, uint256 timestamp, uint80 answeredInRound) =
