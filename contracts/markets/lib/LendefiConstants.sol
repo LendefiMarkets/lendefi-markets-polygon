@@ -11,9 +11,11 @@ library LendefiConstants {
     /// @notice Standard decimals for percentage calculations (1e6 = 100%)
     // uint256 internal constant WAD = 1e6;
 
-    /// @notice Address of the Uniswap V3 USDC/ETH pool on Base mainnet
-    address internal constant USDC_ETH_POOL = 0xb2cc224c1c9feE385f8ad6a55b4d94E92359DC59;
-    // 0xd0b53D9277642d899DF5C87A3966A349A798F224;
+    /// @notice Address of the Uniswap V3 USDT/ETH pool on Polygon mainnet
+    address internal constant USDT_ETH_POOL = 0x4CcD010148379ea531D6C587CfDd60180196F9b1;
+    
+    /// @notice Address of the Uniswap V3 USDC/ETH pool on Polygon mainnet
+    address internal constant USDC_ETH_POOL = 0xA4D8c89f0c20efbe54cBa9e7e7a7E509056228D9;
 
     /// @notice Role identifier for users authorized to pause/unpause the protocol
     bytes32 internal constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -42,18 +44,30 @@ library LendefiConstants {
     /// @notice Max assets supported by platform
     uint32 internal constant MAX_ASSETS = 3000;
 
-    /// @notice Base chain ID
-    uint256 internal constant BASE_CHAIN_ID = 8453;
+    /// @notice Polygon chain ID
+    uint256 internal constant POLYGON_CHAIN_ID = 137;
 
-    /// @notice Base sequencer uptime feed address
-    address internal constant SEQUENCER_FEED = 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433;
+    /// @notice Polygon does not have a sequencer feed (not an L2)
+    address internal constant SEQUENCER_FEED = address(0);
 
-    /// @notice Grace period after sequencer restart (1 hour)
+    /// @notice Grace period after sequencer restart (1 hour) - not applicable for Polygon
     uint256 internal constant GRACE_PERIOD = 3600;
 
-    /// @notice Base mainnet USDC address
-    address internal constant BASE_USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+    /// @notice Polygon mainnet USDC address
+    address internal constant POLYGON_USDC = 0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359;
 
-    /// @notice Base mainnet WETH address
-    address internal constant BASE_WETH = 0x4200000000000000000000000000000000000006;
+    /// @notice Polygon mainnet USDT address
+    address internal constant POLYGON_USDT = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
+
+    /// @notice Polygon mainnet WETH address
+    address internal constant POLYGON_WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+
+    /// @notice Polygon mainnet WBTC address
+    address internal constant POLYGON_WBTC = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6;
+
+    /// @notice Polygon mainnet LINK address
+    address internal constant POLYGON_LINK = 0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39;
+
+    /// @notice Polygon mainnet WPOL address
+    address internal constant POLYGON_WPOL = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 }
