@@ -97,29 +97,29 @@ contract BasicDeploy is Test {
     LendefiCore internal marketCoreInstance;
     LendefiMarketVault internal marketVaultInstance;
     LendefiPoRFeed internal porFeedImplementation;
-    WETH9 internal wethInstance;
-    // USDC internal usdcInstance;
-    IERC20 usdcInstance = IERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913); //real usdc base mainnet for fork testing
-    IERC20 usdtInstance = IERC20(0xfde4C96C8593536C3fcF34c7E4a6777c1b31a7C3); //real usdt base mainnet for fork testing
+    // Real Polygon mainnet addresses for fork testing
+    IERC20 usdcInstance = IERC20(0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359); // USDC on Polygon
+    IERC20 usdtInstance = IERC20(0xc2132D05D31c914a87C6611C10748AEb04B58e8F); // USDT on Polygon
+    IERC20 wethInstance = IERC20(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619); // WETH on Polygon
 
     // ==================== NETWORK CONFIGURATION ====================
 
     /**
      * @notice Get network-specific addresses for oracle validation
-     * @dev For fork tests, always returns Base mainnet addresses from LendefiConstants
-     * @return networkUSDC The USDC address for this network
+     * @dev For fork tests, returns Polygon mainnet addresses
+     * @return networkUSDT The USDT address for this network
      * @return networkWETH The WETH address for this network
-     * @return UsdcWethPool The USDC/WETH pool address for this network
+     * @return usdtWethPool The USDT/WETH pool address for this network
      */
     function getNetworkAddresses()
         internal
         pure
-        returns (address networkUSDC, address networkWETH, address UsdcWethPool)
+        returns (address networkUSDT, address networkWETH, address usdtWethPool)
     {
-        // Fork tests run on Base mainnet, so use LendefiConstants addresses
-        networkUSDC = LendefiConstants.BASE_USDC;
-        networkWETH = LendefiConstants.BASE_WETH;
-        UsdcWethPool = LendefiConstants.USDC_ETH_POOL;
+        // Fork tests run on Polygon mainnet
+        networkUSDT = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F; // USDT on Polygon
+        networkWETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619; // WETH on Polygon
+        usdtWethPool = 0x4CcD010148379ea531D6C587CfDd60180196F9b1; // USDT/WETH pool on Polygon
     }
 
     function deployTokenUpgrade() internal {
@@ -583,7 +583,7 @@ contract BasicDeploy is Test {
         porFeedImplementation = new LendefiPoRFeed();
 
         // Get network addresses for test
-        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
+        (address networkUSDT, address networkWETH, address usdtWethPool) = getNetworkAddresses();
 
         // Protocol Oracle deploy (combined Oracle + Assets)
         bytes memory data = abi.encodeCall(
@@ -593,9 +593,9 @@ contract BasicDeploy is Test {
                 charlie,
                 address(porFeedImplementation),
                 address(0),
-                networkUSDC,
+                networkUSDT,
                 networkWETH,
-                UsdcWethPool
+                usdtWethPool
             )
         );
 
@@ -767,7 +767,7 @@ contract BasicDeploy is Test {
         LendefiPoRFeed porFeedImpl = new LendefiPoRFeed();
 
         // Get network-specific addresses
-        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
+        (address networkUSDT, address networkWETH, address usdtWethPool) = getNetworkAddresses();
 
         // Deploy factory using UUPS pattern with direct proxy deployment
         bytes memory factoryData = abi.encodeCall(
@@ -777,9 +777,9 @@ contract BasicDeploy is Test {
                 address(tokenInstance),
                 gnosisSafe,
                 address(ecoInstance),
-                networkUSDC,
+                networkUSDT,
                 networkWETH,
-                UsdcWethPool
+                usdtWethPool
             )
         );
         address payable factoryProxy = payable(Upgrades.deployUUPSProxy("LendefiMarketFactory.sol", factoryData));
@@ -852,17 +852,17 @@ contract BasicDeploy is Test {
         if (address(treasuryInstance) == address(0)) _deployTreasury();
         if (address(assetsInstance) == address(0)) _deployAssetsModule();
 
-        if (address(usdcInstance) == address(0)) usdcInstance = new USDC();
+        // USDC instance is already defined in BasicDeploy as real Polygon mainnet USDC
 
         // Deploy market factory
         _deployMarketFactory();
 
         // Deploy USDC market
-        _deployMarket(address(usdcInstance), "Lendefi Yield Token", "LYTUSDC");
+        _deployMarket(address(usdcInstance), "Lendefi Yield Token USDC", "LYTUSDC");
     }
 
     /**
-     * @notice Deploy a complete markets setup with USDT as base asset
+     * @notice Deploy a complete markets setup with USDT as base asset (primary for Polygon)
      * @dev Deploys all necessary contracts and creates a USDT market
      */
     function deployMarketsWithUSDT() internal {
@@ -876,7 +876,7 @@ contract BasicDeploy is Test {
         if (address(treasuryInstance) == address(0)) _deployTreasury();
         if (address(assetsInstance) == address(0)) _deployAssetsModule();
 
-        // USDT instance is already defined in BasicDeploy as real mainnet USDT
+        // USDT instance is already defined in BasicDeploy as real Polygon mainnet USDT
 
         // Deploy market factory
         _deployMarketFactory();
