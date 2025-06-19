@@ -108,14 +108,14 @@ contract BasicDeploy is Test {
      * @dev Returns appropriate addresses based on chain ID
      * @return networkUSDC The USDC address for this network
      * @return networkWETH The WETH address for this network
-     * @return UsdcWethPool The USDC/WETH pool address for this network
+     * @return usdcWethPool The USDC/WETH pool address for this network
      */
-    function getNetworkAddresses() internal returns (address networkUSDC, address networkWETH, address UsdcWethPool) {
+    function getNetworkAddresses() internal returns (address networkUSDC, address networkWETH, address usdcWethPool) {
         if (block.chainid == LendefiConstants.POLYGON_CHAIN_ID) {
             // Polygon mainnet addresses
             networkUSDC = LendefiConstants.POLYGON_USDC;
             networkWETH = LendefiConstants.POLYGON_WETH;
-            UsdcWethPool = LendefiConstants.USDC_ETH_POOL;
+            usdcWethPool = LendefiConstants.USDC_ETH_POOL;
         } else {
             // Testnet or other networks - use mock/deployed addresses
             // Deploy WETH if not already deployed
@@ -126,7 +126,7 @@ contract BasicDeploy is Test {
             networkWETH = address(wethInstance);
             // For testnets, we'll need to deploy a mock pool or use a placeholder
             // This should be set to a real pool address in actual testnet deployment
-            UsdcWethPool = address(0x1234567890123456789012345678901234567890); // Placeholder for testnet
+            usdcWethPool = address(0x1234567890123456789012345678901234567890); // Placeholder for testnet
         }
     }
 
@@ -615,7 +615,7 @@ contract BasicDeploy is Test {
         porFeedImplementation = new LendefiPoRFeed();
 
         // Get network-specific addresses
-        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
+        (address networkUSDC, address networkWETH, address usdcWethPool) = getNetworkAddresses();
 
         // Protocol Oracle deploy (combined Oracle + Assets)
         bytes memory data = abi.encodeCall(
@@ -627,7 +627,7 @@ contract BasicDeploy is Test {
                 ethereum,
                 networkUSDC,
                 networkWETH,
-                UsdcWethPool
+                usdcWethPool
             )
         );
 
@@ -806,7 +806,7 @@ contract BasicDeploy is Test {
         LendefiPoRFeed porFeedImpl = new LendefiPoRFeed();
 
         // Get network-specific addresses
-        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
+        (address networkUSDC, address networkWETH, address usdcWethPool) = getNetworkAddresses();
 
         // Deploy factory using UUPS pattern with direct proxy deployment
         bytes memory factoryData = abi.encodeCall(
@@ -818,7 +818,7 @@ contract BasicDeploy is Test {
                 address(ecoInstance),
                 networkUSDC,
                 networkWETH,
-                UsdcWethPool
+                usdcWethPool
             )
         );
         address payable factoryProxy = payable(Upgrades.deployUUPSProxy("LendefiMarketFactory.sol", factoryData));
