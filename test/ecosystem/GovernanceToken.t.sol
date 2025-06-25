@@ -97,7 +97,7 @@ contract GovernanceTokenTest is BasicDeploy {
         vm.prank(bridge);
         vm.expectEmit();
         emit BridgeMint(bridge, alice, 20 ether);
-        tokenInstance.bridgeMint(alice, 20 ether);
+        tokenInstance.mint(alice, 20 ether);
         assertEq(tokenInstance.balanceOf(alice), 100 ether);
     }
 
@@ -117,7 +117,7 @@ contract GovernanceTokenTest is BasicDeploy {
         // try to bridge
         vm.expectRevert(abi.encodeWithSelector(BridgeAmountExceeded.selector, amount, tokenInstance.maxBridge()));
         vm.prank(bridge);
-        tokenInstance.bridgeMint(alice, amount);
+        tokenInstance.mint(alice, amount);
     }
 
     function test_Revert_BridgeMint_Branch4() public {
@@ -148,7 +148,7 @@ contract GovernanceTokenTest is BasicDeploy {
             abi.encodeWithSelector(MaxSupplyExceeded.selector, newSupplyAfterMint, tokenInstance.initialSupply())
         );
         vm.prank(bridge);
-        tokenInstance.bridgeMint(alice, bridgeAmount);
+        tokenInstance.mint(alice, bridgeAmount);
     }
 
     function test_UpdateMaxBridgeAmount() public {
@@ -203,7 +203,7 @@ contract GovernanceTokenTest is BasicDeploy {
         // Try to bridge with an amount between old and new limit
         uint256 bridgeAmount = 25_000 ether; // Between old (20k) and new (30k) limits
         vm.prank(bridge);
-        tokenInstance.bridgeMint(alice, bridgeAmount);
+        tokenInstance.mint(alice, bridgeAmount);
 
         assertEq(tokenInstance.balanceOf(alice), bridgeAmount, "Bridge mint should succeed with updated limit");
     }
@@ -218,7 +218,7 @@ contract GovernanceTokenTest is BasicDeploy {
         // Try to mint to zero address
         vm.prank(bridge);
         vm.expectRevert(ZeroAddress.selector);
-        tokenInstance.bridgeMint(address(0), 100 ether);
+        tokenInstance.mint(address(0), 100 ether);
     }
 
     function testRevert_BridgeMint_ZeroAmount() public {
@@ -231,7 +231,7 @@ contract GovernanceTokenTest is BasicDeploy {
         // Try to mint zero tokens
         vm.prank(bridge);
         vm.expectRevert(ZeroAmount.selector);
-        tokenInstance.bridgeMint(alice, 0);
+        tokenInstance.mint(alice, 0);
     }
 
     function testRevert_BridgeMint_WhenPaused() public {
@@ -249,7 +249,7 @@ contract GovernanceTokenTest is BasicDeploy {
         bytes memory expError = abi.encodeWithSignature("EnforcedPause()");
         vm.prank(bridge);
         vm.expectRevert(expError);
-        tokenInstance.bridgeMint(alice, 100 ether);
+        tokenInstance.mint(alice, 100 ether);
     }
 
     function test_PauseUnpause() public {

@@ -267,7 +267,7 @@ contract GovernanceTokenBasicTest is Test {
         vm.prank(bridge);
         vm.expectEmit(true, true, false, true);
         emit BridgeMint(bridge, alice, 1000 ether);
-        tokenInstance.bridgeMint(alice, 1000 ether);
+        tokenInstance.mint(alice, 1000 ether);
 
         assertEq(tokenInstance.balanceOf(alice), 1000 ether);
         assertEq(tokenInstance.totalSupply(), 1000 ether);
@@ -281,7 +281,7 @@ contract GovernanceTokenBasicTest is Test {
         // Try to mint to zero address
         vm.prank(bridge);
         vm.expectRevert(GovernanceToken.ZeroAddress.selector);
-        tokenInstance.bridgeMint(address(0), 1000 ether);
+        tokenInstance.mint(address(0), 1000 ether);
     }
 
     function testRevert_BridgeMintZeroAmount() public {
@@ -292,7 +292,7 @@ contract GovernanceTokenBasicTest is Test {
         // Try to mint zero amount
         vm.prank(bridge);
         vm.expectRevert(GovernanceToken.ZeroAmount.selector);
-        tokenInstance.bridgeMint(alice, 0);
+        tokenInstance.mint(alice, 0);
     }
 
     function testRevert_BridgeMintExceedsMaxBridge() public {
@@ -307,7 +307,7 @@ contract GovernanceTokenBasicTest is Test {
                 GovernanceToken.BridgeAmountExceeded.selector, DEFAULT_MAX_BRIDGE_AMOUNT + 1, DEFAULT_MAX_BRIDGE_AMOUNT
             )
         );
-        tokenInstance.bridgeMint(alice, DEFAULT_MAX_BRIDGE_AMOUNT + 1);
+        tokenInstance.mint(alice, DEFAULT_MAX_BRIDGE_AMOUNT + 1);
     }
 
     function testRevert_BridgeMintExceedsMaxSupply() public {
@@ -342,7 +342,7 @@ contract GovernanceTokenBasicTest is Test {
             )
         );
         vm.prank(bridge);
-        tokenInstance.bridgeMint(alice, mintAmount);
+        tokenInstance.mint(alice, mintAmount);
     }
 
     function testRevert_BridgeMintWhenPaused() public {
@@ -357,7 +357,7 @@ contract GovernanceTokenBasicTest is Test {
         // FIX #4: Use PausableUpgradeable.EnforcedPause.selector instead of string
         vm.prank(bridge);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        tokenInstance.bridgeMint(alice, 1000 ether);
+        tokenInstance.mint(alice, 1000 ether);
     }
 
     function testUpdateMaxBridgeAmount() public {
