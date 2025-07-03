@@ -60,7 +60,6 @@ contract BasicDeploy is Test {
         usdtWethPool = 0x4CcD010148379ea531D6C587CfDd60180196F9b1;
     }
 
-
     function _deployToken() internal {
         if (address(timelockInstance) == address(0)) {
             _deployTimelock();
@@ -126,20 +125,27 @@ contract BasicDeploy is Test {
         assetsInstance = LendefiAssets(proxy);
     }
 
-
+    /**
+     * @notice Deploys the LendefiMarketFactory contract
+     * @dev This contract creates Core+Vault pairs for different base assets
+     */
     function _deployMarketFactory() internal {
+        // Ensure dependencies are deployed
         require(address(timelockInstance) != address(0), "Timelock not deployed");
         require(address(treasuryInstance) != address(0), "Treasury not deployed");
         require(address(tokenInstance) != address(0), "Governance token not deployed");
 
+        // Deploy implementations
         LendefiCore coreImpl = new LendefiCore();
-        LendefiMarketVault marketVaultImpl = new LendefiMarketVault();
-        LendefiPositionVault positionVaultImpl = new LendefiPositionVault();
-        LendefiAssets assetsImpl = new LendefiAssets();
+        LendefiMarketVault marketVaultImpl = new LendefiMarketVault(); // For market vaults
+        LendefiPositionVault positionVaultImpl = new LendefiPositionVault(); // For user position vaults
+        LendefiAssets assetsImpl = new LendefiAssets(); // Assets implementation for cloning
         LendefiPoRFeed porFeedImpl = new LendefiPoRFeed();
 
-        (address networkUSDT, address networkWETH, address usdtWethPool) = getNetworkAddresses();
+        // Get network-specific addresses
+        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
 
+        // Deploy factory using UUPS pattern with direct proxy deployment
         bytes memory factoryData = abi.encodeCall(
             LendefiMarketFactory.initialize,
             (
@@ -147,14 +153,15 @@ contract BasicDeploy is Test {
                 address(tokenInstance),
                 gnosisSafe,
                 address(ecoInstance),
-                networkUSDT,
+                networkUSDC,
                 networkWETH,
-                usdtWethPool
+                UsdcWethPool
             )
         );
         address payable factoryProxy = payable(Upgrades.deployUUPSProxy("LendefiMarketFactory.sol", factoryData));
         marketFactoryInstance = LendefiMarketFactory(factoryProxy);
 
+        // Set implementations - pass the implementation address, NOT the proxy
         vm.prank(gnosisSafe);
         marketFactoryInstance.setImplementations(
             address(coreImpl),
@@ -163,30 +170,58 @@ contract BasicDeploy is Test {
             address(assetsImpl),
             address(porFeedImpl)
         );
+
+        // TGE setup - MUST be done before market creation to give guardian tokens
+        vm.prank(guardian);
+        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
     }
 
+    /**
+     * @notice Deploys a specific market (Core + Vault) for a base asset
+     * @param baseAsset The base asset address for the market
+     * @param name The name for the market
+     * @param symbol The symbol for the market
+     */
     function _deployMarket(address baseAsset, string memory name, string memory symbol) internal {
         require(address(marketFactoryInstance) != address(0), "Market factory not deployed");
+
+        // Verify implementations are set
         require(marketFactoryInstance.coreImplementation() != address(0), "Core implementation not set");
         require(marketFactoryInstance.vaultImplementation() != address(0), "Vault implementation not set");
 
-        vm.prank(gnosisSafe);
-        marketFactoryInstance.grantRole(LendefiConstants.MARKET_OWNER_ROLE, charlie);
+        // NOTE: MARKET_OWNER_ROLE no longer required - market creation is now permissionless with governance token requirement
 
+        // Add base asset to allowlist (done by multisig which has MANAGER_ROLE)
         vm.prank(gnosisSafe);
         marketFactoryInstance.addAllowedBaseAsset(baseAsset);
 
+        // Setup governance tokens for charlie (required for permissionless market creation)
+        // Transfer governance tokens from guardian to charlie (guardian received DEPLOYER_SHARE during TGE)
+        vm.prank(guardian);
+        tokenInstance.transfer(charlie, 10000 ether); // Transfer 10,000 tokens (more than the 1000 required)
+
+        // Charlie approves factory to spend governance tokens
+        vm.prank(charlie);
+        tokenInstance.approve(address(marketFactoryInstance), 100 ether); // Approve the 100 tokens that will be transferred
+
+        // Create market via factory (charlie as market owner)
         vm.prank(charlie);
         marketFactoryInstance.createMarket(baseAsset, name, symbol);
 
+        // Get deployed addresses (using charlie as market owner)
         IPROTOCOL.Market memory deployedMarket = marketFactoryInstance.getMarketInfo(charlie, baseAsset);
         marketCoreInstance = LendefiCore(deployedMarket.core);
         marketVaultInstance = LendefiMarketVault(deployedMarket.baseVault);
-        assetsInstance = LendefiAssets(deployedMarket.assetsModule);
 
+        // Get the assets module for this specific market from the market struct
+        address marketAssetsModule = deployedMarket.assetsModule;
+        assetsInstance = LendefiAssets(marketAssetsModule); // Update assetsInstance to point to the market's assets module
+
+        // Grant necessary roles
         vm.startPrank(address(timelockInstance));
         ecoInstance.grantRole(REWARDER_ROLE, address(marketCoreInstance));
+        // Grant market owner MANAGER_ROLE on vault (since factory can't do it without DEFAULT_ADMIN_ROLE)
+        marketVaultInstance.grantRole(LendefiConstants.MANAGER_ROLE, charlie);
         vm.stopPrank();
     }
-
 }
