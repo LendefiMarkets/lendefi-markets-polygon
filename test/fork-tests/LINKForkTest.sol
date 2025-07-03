@@ -70,10 +70,6 @@ contract LinkForkTest is BasicDeploy {
         timelockInstance.grantRole(CANCELLER_ROLE, address(govInstance));
         vm.stopPrank();
 
-        // TGE setup - but DON'T warp time
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
-
         // Configure assets - only WETH and LINK since we have pools for them
         _configureWETH();
         _configureLINK();
@@ -130,8 +126,7 @@ contract LinkForkTest is BasicDeploy {
     }
 
     function test_ChainlinkOracleETH() public view {
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) =
-            AggregatorV3Interface(ETH_USD_ORACLE).latestRoundData();
+        (uint80 roundId, int256 answer,, uint256 updatedAt,) = AggregatorV3Interface(ETH_USD_ORACLE).latestRoundData();
 
         console2.log("Direct ETH/USD oracle call:");
         console2.log("  RoundId:", roundId);
@@ -140,8 +135,7 @@ contract LinkForkTest is BasicDeploy {
     }
 
     function test_ChainlinkOracleLINK() public view {
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) =
-            AggregatorV3Interface(LINK_USD_ORACLE).latestRoundData();
+        (uint80 roundId, int256 answer,, uint256 updatedAt,) = AggregatorV3Interface(LINK_USD_ORACLE).latestRoundData();
         console2.log("Direct LINK/USD oracle call:");
         console2.log("  RoundId:", roundId);
         console2.log("  Raw answer (8 decimals):", uint256(answer));

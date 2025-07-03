@@ -64,10 +64,6 @@ contract USDTForkTest is BasicDeploy {
         timelockInstance.grantRole(CANCELLER_ROLE, address(govInstance));
         vm.stopPrank();
 
-        // TGE setup - but DON'T warp time
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
-
         // Configure assets
         console2.log("=== Starting asset configuration ===");
         console2.log("WETH address:", WETH);
@@ -168,8 +164,7 @@ contract USDTForkTest is BasicDeploy {
     }
 
     function test_ChainlinkOracleETH() public view {
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) =
-            AggregatorV3Interface(ETH_USD_ORACLE).latestRoundData();
+        (uint80 roundId, int256 answer,, uint256 updatedAt,) = AggregatorV3Interface(ETH_USD_ORACLE).latestRoundData();
 
         console2.log("Direct ETH/USD oracle call:");
         console2.log("  RoundId:", roundId);
@@ -178,8 +173,7 @@ contract USDTForkTest is BasicDeploy {
     }
 
     function test_ChainLinkOracleBTC() public view {
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) =
-            AggregatorV3Interface(WBTC_USD_ORACLE).latestRoundData();
+        (uint80 roundId, int256 answer,, uint256 updatedAt,) = AggregatorV3Interface(WBTC_USD_ORACLE).latestRoundData();
         console2.log("Direct BTC/USD oracle call:");
         console2.log("  RoundId:", roundId);
         console2.log("  Price:", uint256(answer) / 1e8);
@@ -299,7 +293,7 @@ contract USDTForkTest is BasicDeploy {
         vm.startPrank(wethHolder);
         IERC20(WETH).transfer(testUser, 50 ether);
         vm.stopPrank();
-        
+
         // Create a user with WETH
         vm.startPrank(testUser);
 

@@ -71,15 +71,10 @@ contract WETHForkTest is BasicDeploy {
         timelockInstance.grantRole(CANCELLER_ROLE, address(govInstance));
         vm.stopPrank();
 
-        // TGE setup - but DON'T warp time
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
-
         // Configure assets - WETH is now base asset, others are collateral
         _configureWETH();
         _configureWBTC();
         _configureLINK();
-        // _configureAERO(); // AERO not available on Polygon
         _configureUSDC();
     }
 
@@ -192,8 +187,7 @@ contract WETHForkTest is BasicDeploy {
     }
 
     function test_ChainlinkOracleETH() public view {
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) =
-            AggregatorV3Interface(ETH_USD_ORACLE).latestRoundData();
+        (uint80 roundId, int256 answer,, uint256 updatedAt,) = AggregatorV3Interface(ETH_USD_ORACLE).latestRoundData();
 
         console2.log("Direct ETH/USD oracle call:");
         console2.log("  RoundId:", roundId);
@@ -202,8 +196,7 @@ contract WETHForkTest is BasicDeploy {
     }
 
     function test_ChainLinkOracleBTC() public view {
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) =
-            AggregatorV3Interface(WBTC_USD_ORACLE).latestRoundData();
+        (uint80 roundId, int256 answer,, uint256 updatedAt,) = AggregatorV3Interface(WBTC_USD_ORACLE).latestRoundData();
         console2.log("Direct BTC/USD oracle call:");
         console2.log("  RoundId:", roundId);
         console2.log("  Price:", uint256(answer) / 1e8);
@@ -323,7 +316,7 @@ contract WETHForkTest is BasicDeploy {
         vm.startPrank(wethHolder);
         IERC20(WETH).transfer(testUser, 50 ether);
         vm.stopPrank();
-        
+
         // Create a user with WETH
         vm.startPrank(testUser);
 
@@ -367,8 +360,7 @@ contract WETHForkTest is BasicDeploy {
         console2.log("LINK price:", actualPrice);
 
         // Also log direct Chainlink data for reference
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) =
-            AggregatorV3Interface(LINK_USD_ORACLE).latestRoundData();
+        (uint80 roundId, int256 answer,, uint256 updatedAt,) = AggregatorV3Interface(LINK_USD_ORACLE).latestRoundData();
         console2.log("Direct LINK/USD oracle call:");
         console2.log("  RoundId:", roundId);
         console2.log("  Price:", uint256(answer) / 1e8);
