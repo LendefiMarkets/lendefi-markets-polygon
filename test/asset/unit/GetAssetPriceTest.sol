@@ -24,9 +24,6 @@ contract GetAssetPriceTest is BasicDeploy {
         deployMarketsWithUSDC();
         decimals = usdcInstance.decimals();
 
-        // TGE setup
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
         vm.warp(block.timestamp + 90 days);
 
         // Deploy mock tokens (USDC already deployed by deployCompleteWithOracle())

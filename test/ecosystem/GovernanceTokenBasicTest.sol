@@ -235,19 +235,19 @@ contract GovernanceTokenBasicTest is Test {
 
     // ========== Bridge Tests ==========
 
-    function testSetBridgeAddress() public {
+    function testgrantMintAndBurnRoles() public {
         vm.prank(timelock);
         vm.expectEmit(true, true, false, false);
         emit BridgeRoleAssigned(timelock, bridge);
-        tokenInstance.setBridgeAddress(bridge);
+        tokenInstance.grantMintAndBurnRoles(bridge);
 
         assertTrue(tokenInstance.hasRole(BRIDGE_ROLE, bridge));
     }
 
-    function testRevert_SetBridgeAddressZero() public {
+    function testRevert_grantMintAndBurnRolesZero() public {
         vm.prank(timelock);
         vm.expectRevert(GovernanceToken.ZeroAddress.selector);
-        tokenInstance.setBridgeAddress(address(0));
+        tokenInstance.grantMintAndBurnRoles(address(0));
     }
 
     function testRevert_UnauthorizedSetBridge() public {
@@ -255,13 +255,13 @@ contract GovernanceTokenBasicTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, MANAGER_ROLE)
         );
-        tokenInstance.setBridgeAddress(bridge);
+        tokenInstance.grantMintAndBurnRoles(bridge);
     }
 
-    function testBridgeMint() public {
+    function testmint() public {
         // Setup bridge role
         vm.prank(timelock);
-        tokenInstance.setBridgeAddress(bridge);
+        tokenInstance.grantMintAndBurnRoles(bridge);
 
         // Perform bridge mint
         vm.prank(bridge);
@@ -273,10 +273,10 @@ contract GovernanceTokenBasicTest is Test {
         assertEq(tokenInstance.totalSupply(), 1000 ether);
     }
 
-    function testRevert_BridgeMintZeroAddress() public {
+    function testRevert_mintZeroAddress() public {
         // Setup bridge role
         vm.prank(timelock);
-        tokenInstance.setBridgeAddress(bridge);
+        tokenInstance.grantMintAndBurnRoles(bridge);
 
         // Try to mint to zero address
         vm.prank(bridge);
@@ -284,10 +284,10 @@ contract GovernanceTokenBasicTest is Test {
         tokenInstance.mint(address(0), 1000 ether);
     }
 
-    function testRevert_BridgeMintZeroAmount() public {
+    function testRevert_mintZeroAmount() public {
         // Setup bridge role
         vm.prank(timelock);
-        tokenInstance.setBridgeAddress(bridge);
+        tokenInstance.grantMintAndBurnRoles(bridge);
 
         // Try to mint zero amount
         vm.prank(bridge);
@@ -295,10 +295,10 @@ contract GovernanceTokenBasicTest is Test {
         tokenInstance.mint(alice, 0);
     }
 
-    function testRevert_BridgeMintExceedsMaxBridge() public {
+    function testRevert_mintExceedsMaxBridge() public {
         // Setup bridge role
         vm.prank(timelock);
-        tokenInstance.setBridgeAddress(bridge);
+        tokenInstance.grantMintAndBurnRoles(bridge);
 
         // Try to mint more than maxBridge
         vm.prank(bridge);
@@ -310,14 +310,14 @@ contract GovernanceTokenBasicTest is Test {
         tokenInstance.mint(alice, DEFAULT_MAX_BRIDGE_AMOUNT + 1);
     }
 
-    function testRevert_BridgeMintExceedsMaxSupply() public {
+    function testRevert_mintExceedsMaxSupply() public {
         // First do TGE to get most of supply minted
         vm.prank(guardian);
         tokenInstance.initializeTGE(ecosystem, treasury);
 
         // Setup bridge role
         vm.prank(timelock);
-        tokenInstance.setBridgeAddress(bridge);
+        tokenInstance.grantMintAndBurnRoles(bridge);
 
         // Increase maxBridge to allow larger amounts
         vm.prank(timelock);
@@ -345,10 +345,10 @@ contract GovernanceTokenBasicTest is Test {
         tokenInstance.mint(alice, mintAmount);
     }
 
-    function testRevert_BridgeMintWhenPaused() public {
+    function testRevert_mintWhenPaused() public {
         // Setup bridge role
         vm.prank(timelock);
-        tokenInstance.setBridgeAddress(bridge);
+        tokenInstance.grantMintAndBurnRoles(bridge);
 
         // Pause contract
         vm.prank(address(timelock));

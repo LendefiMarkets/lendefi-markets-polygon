@@ -49,10 +49,6 @@ contract LendefiCoreTest is BasicDeploy {
         baseDecimals = usdcInstance.decimals();
         initialLiquidity = 1_000_000 * 10 ** baseDecimals; // 1M USDC
 
-        // Setup TGE
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
-
         // Deploy test tokens
         wethInstance = new WETH9();
         rwaToken = new MockRWA("Real World Asset", "RWA");
@@ -186,9 +182,7 @@ contract LendefiCoreTest is BasicDeploy {
         LendefiPositionVault vaultImpl = new LendefiPositionVault();
 
         vm.expectRevert(); // Expect revert for already initialized
-        marketCoreInstance.initialize(
-            address(timelockInstance), charlie, address(tokenInstance), address(vaultImpl)
-        );
+        marketCoreInstance.initialize(address(timelockInstance), charlie, address(tokenInstance), address(vaultImpl));
     }
 
     function test_Revert_InitializeWithZeroAddress() public {

@@ -33,9 +33,6 @@ contract LendefiAssetsTest is BasicDeploy {
     function setUp() public {
         deployMarketsWithUSDC();
 
-        // TGE setup
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
         vm.warp(block.timestamp + 90 days);
 
         // Deploy mock tokens (USDC already deployed by deployCompleteWithOracle())
@@ -184,7 +181,37 @@ contract LendefiAssetsTest is BasicDeploy {
         vm.stopPrank();
     }
 
-    // test_GetAssetDetails_Basic removed - getAssetDetails function no longer exists
+    function test_GetAssetInfo_Basic() public {
+        // Reset the price to ensure it's properly set
+        wethOracle.setPrice(int256(ETH_PRICE));
+
+        // Get asset info and price separately since getAssetDetails was removed
+        IASSETS.Asset memory assetInfo = assetsInstance.getAssetInfo(address(wethInstance));
+        uint256 price = assetsInstance.getAssetPrice(address(wethInstance));
+        (uint256 totalSupplied,,) = marketCoreInstance.getAssetTVL(address(wethInstance));
+
+        // Log values for debugging
+        console2.log("WETH Price:", price);
+        console2.log("WETH Total Supplied:", totalSupplied);
+        console2.log("WETH Max Supply:", assetInfo.maxSupplyThreshold);
+        console2.log("WETH Tier:", uint256(assetInfo.tier));
+
+        // Verify returned values
+        assertEq(price, ETH_PRICE / 1e2, "WETH price should match oracle price");
+        assertEq(totalSupplied, 0, "WETH total supplied should be 0");
+        assertEq(assetInfo.maxSupplyThreshold, 1_000_000 ether, "WETH max supply incorrect");
+
+        // Rest of the function remains the same
+        uint256 expectedBorrowRate = marketCoreInstance.getBorrowRate(IASSETS.CollateralTier.CROSS_A);
+        uint256 expectedLiquidationFee = assetsInstance.getLiquidationFee(IASSETS.CollateralTier.CROSS_A);
+
+        uint256 borrowRate = marketCoreInstance.getBorrowRate(assetInfo.tier);
+        uint256 liquidationFee = assetsInstance.getLiquidationFee(assetInfo.tier);
+
+        assertEq(borrowRate, expectedBorrowRate, "WETH borrow rate should match expected rate");
+        assertEq(liquidationFee, expectedLiquidationFee, "WETH liquidation fee should match expected fee");
+        assertEq(uint256(assetInfo.tier), uint256(IASSETS.CollateralTier.CROSS_A), "WETH tier should be CROSS_A");
+    }
 
     function test_UpdateAssetConfig() public {
         IASSETS.Asset memory asset = assetsInstance.getAssetInfo(address(wethInstance));
@@ -446,8 +473,6 @@ contract LendefiAssetsTest is BasicDeploy {
         assetsInstance.getAssetInfo(address(0xDEAD));
     }
 
-    // testRevert_AssetNotListed_GetAssetDetails removed - getAssetDetails function no longer exists
-
     function test_CollateralTierParameters() public {
         // Test for all tiers
         IASSETS.CollateralTier[] memory tiers = new IASSETS.CollateralTier[](4);
@@ -611,13 +636,18 @@ contract LendefiAssetsTest is BasicDeploy {
         // This test needs a UUPS proxy, not a cloned assets module
         // Deploy a proper assets proxy for upgrade testing
         LendefiPoRFeed porFeedImpl = new LendefiPoRFeed();
-
-        // Get network addresses for test
         (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
-
         bytes memory initData = abi.encodeCall(
             LendefiAssets.initialize,
-            (address(timelockInstance), charlie, address(porFeedImpl), ethereum, networkUSDC, networkWETH, UsdcWethPool)
+            (
+                address(timelockInstance),
+                charlie,
+                address(porFeedImpl),
+                address(marketCoreInstance),
+                networkUSDC,
+                networkWETH,
+                UsdcWethPool
+            )
         );
         address payable assetsProxy = payable(Upgrades.deployUUPSProxy("LendefiAssets.sol", initData));
         LendefiAssets assetsProxyInstance = LendefiAssets(assetsProxy);
@@ -736,12 +766,6 @@ contract LendefiAssetsTest is BasicDeploy {
         assertEq(currentSupply * 100 / maxSupply, 30); // 30% utilization
     }
 
-    // For testRevert_SetCoreAddress_ZeroAddress()
-    function testRevert_SetCoreAddress_ZeroAddress() public {
-        vm.prank(gnosisSafe);
-        // setCoreAddress method no longer exists - core address is set during initialization
-    }
-
     function test_UnpauseAssets() public {
         // First pause the assets contract using timelock (which should have PAUSER_ROLE)
         vm.startPrank(address(timelockInstance));
@@ -829,20 +853,23 @@ contract LendefiAssetsTest is BasicDeploy {
         );
     }
 
-    // test_SetCoreAddress removed - setCoreAddress method no longer exists
-
     function test_InitializeSuccess() public {
         address timelockAddr = address(timelockInstance);
 
         // Create initialization data
         LendefiPoRFeed porFeedImpl = new LendefiPoRFeed();
-
-        // Get network addresses for test
-        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
-
+        (address networkUSDC2, address networkWETH2, address UsdcWethPool2) = getNetworkAddresses();
         bytes memory initData = abi.encodeCall(
             LendefiAssets.initialize,
-            (timelockAddr, charlie, address(porFeedImpl), ethereum, networkUSDC, networkWETH, UsdcWethPool)
+            (
+                timelockAddr,
+                charlie,
+                address(porFeedImpl),
+                address(marketCoreInstance),
+                networkUSDC2,
+                networkWETH2,
+                UsdcWethPool2
+            )
         );
         // Deploy LendefiAssets with initialization
         address payable proxy = payable(Upgrades.deployUUPSProxy("LendefiAssets.sol", initData));

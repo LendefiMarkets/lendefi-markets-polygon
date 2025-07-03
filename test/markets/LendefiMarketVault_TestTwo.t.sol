@@ -26,10 +26,6 @@ contract LendefiMarketVault_TestTwo is BasicDeploy {
         baseDecimals = usdcInstance.decimals();
         initialLiquidity = 1_000_000 * 10 ** baseDecimals; // 1M USDC
 
-        // Setup TGE
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
-
         flashReceiver = new MockFlashLoanReceiver();
 
         // Give flash receiver some USDC for fees

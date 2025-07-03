@@ -29,13 +29,18 @@ contract AssetsInitializeTest is BasicDeploy {
 
         // Create initialization data
         LendefiPoRFeed porFeedImpl = new LendefiPoRFeed();
-
-        // Get network addresses for test
         (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
-
         initData = abi.encodeCall(
             LendefiAssets.initialize,
-            (timelockAddr, charlie, address(porFeedImpl), ethereum, networkUSDC, networkWETH, UsdcWethPool)
+            (
+                timelockAddr,
+                charlie,
+                address(porFeedImpl),
+                address(marketCoreInstance),
+                networkUSDC,
+                networkWETH,
+                UsdcWethPool
+            )
         );
     }
 
@@ -90,13 +95,25 @@ contract AssetsInitializeTest is BasicDeploy {
         // Test with zero address for timelock
         vm.expectRevert(abi.encodeWithSignature("ZeroAddressNotAllowed()"));
         assetsModule.initialize(
-            address(0), gnosisSafe, address(porFeedImpl), ethereum, networkUSDC, networkWETH, UsdcWethPool
+            address(0),
+            gnosisSafe,
+            address(porFeedImpl),
+            address(marketCoreInstance),
+            networkUSDC,
+            networkWETH,
+            UsdcWethPool
         );
 
         // Test with zero address for market owner
         vm.expectRevert(abi.encodeWithSignature("ZeroAddressNotAllowed()"));
         assetsModule.initialize(
-            timelockAddr, address(0), address(porFeedImpl), ethereum, networkUSDC, networkWETH, UsdcWethPool
+            timelockAddr,
+            address(0),
+            address(porFeedImpl),
+            address(marketCoreInstance),
+            networkUSDC,
+            networkWETH,
+            UsdcWethPool
         );
     }
 
@@ -107,13 +124,18 @@ contract AssetsInitializeTest is BasicDeploy {
 
         // Try to initialize again
         LendefiPoRFeed porFeedImpl = new LendefiPoRFeed();
-
         // Get network addresses for test
-        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
+        (address networkUSDC2, address networkWETH2, address UsdcWethPool2) = getNetworkAddresses();
 
         vm.expectRevert(abi.encodeWithSignature("InvalidInitialization()"));
         assetsContract.initialize(
-            timelockAddr, charlie, address(porFeedImpl), ethereum, networkUSDC, networkWETH, UsdcWethPool
+            timelockAddr,
+            charlie,
+            address(porFeedImpl),
+            address(marketCoreInstance),
+            networkUSDC2,
+            networkWETH2,
+            UsdcWethPool2
         );
     }
 
@@ -206,8 +228,8 @@ contract AssetsInitializeTest is BasicDeploy {
             uint40 circuitBreakerThreshold
         ) = assetsContract.mainOracleConfig();
 
-        // Verify default values for Base L2 (24+ hour oracle updates)
-        assertEq(freshnessThreshold, 86400, "Freshness threshold should be 86400 (24 hours) for Base L2");
+        // Verify default values
+        assertEq(freshnessThreshold, 86400, "Freshness threshold should be 86400 (24 hours) on Avalanche");
         assertEq(volatilityThreshold, 3600, "Volatility threshold should be 3600 (1 hour)");
         assertEq(volatilityPercentage, 20, "Volatility percentage should be 20%");
         assertEq(circuitBreakerThreshold, 50, "Circuit breaker threshold should be 50%");

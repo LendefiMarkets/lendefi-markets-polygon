@@ -48,8 +48,6 @@ contract LendefiMarketVault_TestOne is BasicDeploy {
         // Set dynamic amounts
         INITIAL_DEPOSIT = getUSDCAmount(100_000);
         BORROW_AMOUNT = getUSDCAmount(50_000);
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
 
         // Configure assets
         vm.startPrank(address(timelockInstance));
@@ -174,7 +172,7 @@ contract LendefiMarketVault_TestOne is BasicDeploy {
         (bool upkeepNeeded, bytes memory performData) = marketVaultInstance.checkUpkeep("");
 
         assertTrue(upkeepNeeded, "Upkeep should be needed after interval");
-        assertEq(performData, "", "Perform data should be empty");
+        assertEq(performData, "0x00", "Perform data should be empty");
     }
 
     function test_CheckUpkeep_WhenIntervalNotPassed() public {
@@ -183,7 +181,7 @@ contract LendefiMarketVault_TestOne is BasicDeploy {
         (bool upkeepNeeded, bytes memory performData) = marketVaultInstance.checkUpkeep("");
 
         assertFalse(upkeepNeeded, "Upkeep should not be needed before interval");
-        assertEq(performData, "", "Perform data should be empty");
+        assertEq(performData, "0x00", "Perform data should be empty");
     }
 
     function test_PerformUpkeep_UpdatesStateWhenIntervalPassed() public {

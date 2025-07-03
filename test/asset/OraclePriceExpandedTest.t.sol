@@ -33,10 +33,6 @@ contract OraclePriceExpandedTest is BasicDeploy {
         deployMarketsWithUSDC();
         decimals = usdcInstance.decimals();
 
-        // TGE setup
-        vm.prank(guardian);
-        tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
-
         // Deploy mock tokens
         wethInstance = new WETH9();
         testAsset = new MockRWA("Test Asset", "TST");
@@ -153,7 +149,7 @@ contract OraclePriceExpandedTest is BasicDeploy {
 
     // Test 5: Test timeout (timestamp too old)
     function test_GetAssetPriceOracle_Timeout() public {
-        // Set timestamp to 25 hours ago (beyond the 24 hour freshness threshold for Base L2)
+        // Set timestamp to 25 hours ago (beyond the 24 hour freshness threshold on Avalanche)
         mockOracle.setTimestamp(block.timestamp - 25 hours);
 
         // Try to get price directly from oracle
