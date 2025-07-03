@@ -29,6 +29,9 @@ out
 script/
 script-anvil/
 script-sepolia/
+script-base-sepolia/
+dapp
+dapp2
 
 # Ignores development broadcast logs
 !/broadcast
