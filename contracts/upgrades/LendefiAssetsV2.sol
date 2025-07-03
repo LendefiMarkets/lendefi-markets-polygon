@@ -1,20 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 /**
- * ═══════════[ Composable Lending Markets ]═══════════
- *
- * ██╗     ███████╗███╗   ██╗██████╗ ███████╗███████╗██╗
- * ██║     ██╔════╝████╗  ██║██╔══██╗██╔════╝██╔════╝██║
- * ██║     █████╗  ██╔██╗ ██║██║  ██║█████╗  █████╗  ██║
- * ██║     ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██╔══╝  ██║
- * ███████╗███████╗██║ ╚████║██████╔╝███████╗██║     ██║
- * ╚══════╝╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝     ╚═╝
- *
- * ═══════════[ Composable Lending Markets ]═══════════
- * @title LendefiAssetsV2 (for upgrade Testing)
+ * @title LendefiAssetsV2 (for testing upgrades)
  * @author alexei@lendefimarkets(dot)com
  * @notice Manages asset configurations, listings, and oracle integrations
- * @dev Asset pricing functionality via Chainlink oracles and Uniswap TWAP
+ * @dev Extracted component for asset-related functionality
  * @custom:security-contact security@lendefimarkets.com
  * @custom:copyright Copyright (c) 2025 Nebula Holding Inc. All rights reserved.
  */
@@ -921,7 +911,9 @@ contract LendefiAssetsV2 is
             AggregatorV3Interface(oracle).latestRoundData();
 
         if (price <= 0) revert OracleInvalidPrice(oracle, price);
-        if (answeredInRound < roundId) revert OracleStalePrice(oracle, roundId, answeredInRound);
+        if (answeredInRound < roundId) {
+            revert OracleStalePrice(oracle, roundId, answeredInRound);
+        }
 
         uint256 age = block.timestamp - timestamp;
         if (age > mainOracleConfig.freshnessThreshold) {

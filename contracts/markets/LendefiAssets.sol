@@ -921,7 +921,9 @@ contract LendefiAssets is
             AggregatorV3Interface(oracle).latestRoundData();
 
         if (price <= 0) revert OracleInvalidPrice(oracle, price);
-        if (answeredInRound < roundId) revert OracleStalePrice(oracle, roundId, answeredInRound);
+        if (answeredInRound < roundId) {
+            revert OracleStalePrice(oracle, roundId, answeredInRound);
+        }
 
         uint256 age = block.timestamp - timestamp;
         if (age > mainOracleConfig.freshnessThreshold) {
