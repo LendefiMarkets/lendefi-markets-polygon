@@ -165,12 +165,10 @@ contract LendefiCore is
     /// @param marketOwner Address of the market owner who will have management privileges
     /// @param govToken_ Address of the governance token contract
     /// @param positionVault Address of the cloneable vault implementation
-    function initialize(
-        address admin,
-        address marketOwner,
-        address govToken_,
-        address positionVault
-    ) external initializer {
+    function initialize(address admin, address marketOwner, address govToken_, address positionVault)
+        external
+        initializer
+    {
         if (admin == address(0)) revert ZeroAddressNotAllowed();
         if (marketOwner == address(0)) revert ZeroAddressNotAllowed();
         if (govToken_ == address(0)) revert ZeroAddressNotAllowed();
@@ -227,10 +225,10 @@ contract LendefiCore is
         if (_marketInfo.core != address(this)) revert ZeroAddressNotAllowed();
         if (_marketInfo.assetsModule == address(0)) revert ZeroAddressNotAllowed();
 
-        assetsModule = IASSETS(_marketInfo.assetsModule);
         marketInfo = _marketInfo;
         baseAsset = marketInfo.baseAsset;
         baseVault = ILendefiMarketVault(marketInfo.baseVault);
+        assetsModule = IASSETS(marketInfo.assetsModule);
         uint8 assetDecimals = IERC20Metadata(baseAsset).decimals();
         baseDecimals = 10 ** assetDecimals;
 
@@ -410,6 +408,7 @@ contract LendefiCore is
      *
      * @param asset Address of the asset to be used in the position
      * @param isIsolated Boolean indicating whether the position is isolated
+     * @return positionId The unique identifier for the newly created position
      *
      * @custom:requirements
      *   - Asset must be valid
@@ -422,7 +421,6 @@ contract LendefiCore is
      *
      * @custom:emits
      *   - PositionCreated(msg.sender, positionId, isIsolated)
-     * @return positionId The unique identifier for the newly created position
      */
     function createPosition(address asset, bool isIsolated)
         external
