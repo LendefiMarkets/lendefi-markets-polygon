@@ -161,6 +161,7 @@ contract TreasuryV2 is
         // Set roles
         _grantRole(DEFAULT_ADMIN_ROLE, timelock);
         _grantRole(MANAGER_ROLE, timelock);
+        _grantRole(PAUSER_ROLE, multisig);
         _grantRole(PAUSER_ROLE, timelock);
         _grantRole(UPGRADER_ROLE, timelock);
         _grantRole(UPGRADER_ROLE, multisig);
