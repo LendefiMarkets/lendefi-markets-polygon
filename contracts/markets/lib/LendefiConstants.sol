@@ -13,7 +13,7 @@ library LendefiConstants {
 
     /// @notice Address of the Uniswap V3 USDT/ETH pool on Polygon mainnet
     address internal constant USDT_ETH_POOL = 0x4CcD010148379ea531D6C587CfDd60180196F9b1;
-    
+
     /// @notice Address of the Uniswap V3 USDC/ETH pool on Polygon mainnet
     address internal constant USDC_ETH_POOL = 0xA4D8c89f0c20efbe54cBa9e7e7a7E509056228D9;
 
@@ -46,9 +46,6 @@ library LendefiConstants {
 
     /// @notice Polygon chain ID
     uint256 internal constant POLYGON_CHAIN_ID = 137;
-
-    /// @notice Polygon does not have a sequencer feed (not an L2)
-    address internal constant SEQUENCER_FEED = address(0);
 
     /// @notice Grace period after sequencer restart (1 hour) - not applicable for Polygon
     uint256 internal constant GRACE_PERIOD = 3600;
