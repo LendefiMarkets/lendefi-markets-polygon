@@ -313,18 +313,6 @@ interface IASSETS {
     error OracleInvalidPriceVolatility(address oracle, int256 price, uint256 changePercent);
 
     /**
-     * @notice Error thrown when L2 sequencer is down
-     */
-    error SequencerDown();
-
-    /**
-     * @notice Error thrown when L2 sequencer grace period has not passed
-     * @param timeSinceUp Time since sequencer came back up
-     * @param gracePeriod Required grace period
-     */
-    error GracePeriodNotOver(uint256 timeSinceUp, uint256 gracePeriod);
-
-    /**
      * @notice Error thrown when a Uniswap oracle is improperly configured
      * @param asset Address of the affected asset
      */
@@ -388,7 +376,7 @@ interface IASSETS {
      * @param timelock Address with manager role
      * @param multisig Address with admin roles
      * @param porFeed Proof of Reserve feed address
-     * @param coreAddress Address of the core protocol contract
+     * @param coreAddress Address of the core contract
      * @param networkUSDC Network-specific USDC address for oracle validation
      * @param networkWETH Network-specific WETH address for oracle validation
      * @param UsdcWethPool Network-specific USDC/WETH pool for price reference
@@ -650,7 +638,7 @@ interface IASSETS {
     function getPoRFeed(address asset) external view returns (address);
 
     /**
-     * @notice Updates the asset's Proof of Reserve feed and returns USD value
+     * @notice Gets the total value of a specific asset in USD terms
      * @param asset The address of the asset
      * @param amount The amount of the asset
      * @return usdValue The total value of the asset in USD terms
