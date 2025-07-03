@@ -99,9 +99,32 @@ contract BasicDeploy is Test {
     LendefiPoRFeed internal porFeedImplementation;
     WETH9 internal wethInstance;
     USDC internal usdcInstance;
+
     // IERC20 usdcInstance = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48); //real usdc ethereum for fork testing
 
-    // ==================== NETWORK CONFIGURATION ====================
+    // ==================== DYNAMIC AMOUNT HELPERS ====================
+
+    /**
+     * @notice Helper function to get USDC amount scaled to its actual decimals
+     * @param baseAmount The base amount (e.g., 1000 for 1000 USDC)
+     * @return The amount scaled to USDC's decimal precision
+     */
+    function getUSDCAmount(uint256 baseAmount) internal view returns (uint256) {
+        if (address(usdcInstance) == address(0)) {
+            return baseAmount * 1e6; // Default to 6 decimals if USDC not deployed yet
+        }
+        return baseAmount * 10 ** usdcInstance.decimals();
+    }
+
+    /**
+     * @notice Helper function to get a scaled amount for any ERC20 token
+     * @param token The token address
+     * @param baseAmount The base amount (e.g., 1000 for 1000 tokens)
+     * @return The amount scaled to the token's decimal precision
+     */
+    function getTokenAmount(address token, uint256 baseAmount) internal view returns (uint256) {
+        return baseAmount * 10 ** IERC20Metadata(token).decimals();
+    }
 
     /**
      * @notice Get network-specific addresses for oracle validation
@@ -128,30 +151,6 @@ contract BasicDeploy is Test {
             // This should be set to a real pool address in actual testnet deployment
             usdcWethPool = address(0x1234567890123456789012345678901234567890); // Placeholder for testnet
         }
-    }
-
-    // ==================== DYNAMIC AMOUNT HELPERS ====================
-
-    /**
-     * @notice Helper function to get USDC amount scaled to its actual decimals
-     * @param baseAmount The base amount (e.g., 1000 for 1000 USDC)
-     * @return The amount scaled to USDC's decimal precision
-     */
-    function getUSDCAmount(uint256 baseAmount) internal view returns (uint256) {
-        if (address(usdcInstance) == address(0)) {
-            return baseAmount * 1e6; // Default to 6 decimals if USDC not deployed yet
-        }
-        return baseAmount * 10 ** usdcInstance.decimals();
-    }
-
-    /**
-     * @notice Helper function to get a scaled amount for any ERC20 token
-     * @param token The token address
-     * @param baseAmount The base amount (e.g., 1000 for 1000 tokens)
-     * @return The amount scaled to the token's decimal precision
-     */
-    function getTokenAmount(address token, uint256 baseAmount) internal view returns (uint256) {
-        return baseAmount * 10 ** IERC20Metadata(token).decimals();
     }
 
     function deployTokenUpgrade() internal {
@@ -615,7 +614,7 @@ contract BasicDeploy is Test {
         porFeedImplementation = new LendefiPoRFeed();
 
         // Get network-specific addresses
-        (address networkUSDC, address networkWETH, address usdcWethPool) = getNetworkAddresses();
+        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
 
         // Protocol Oracle deploy (combined Oracle + Assets)
         bytes memory data = abi.encodeCall(
@@ -627,7 +626,7 @@ contract BasicDeploy is Test {
                 ethereum,
                 networkUSDC,
                 networkWETH,
-                usdcWethPool
+                UsdcWethPool
             )
         );
 
@@ -639,6 +638,7 @@ contract BasicDeploy is Test {
         address implementation = Upgrades.getImplementationAddress(proxy);
         assertFalse(address(assetsInstance) == implementation);
     }
+
     /**
      * @notice Upgrades the LendefiAssets implementation
      * @dev Follows the same pattern as other module upgrades
@@ -773,14 +773,10 @@ contract BasicDeploy is Test {
 
         // Test role management still works - gnosisSafe should have admin control
         vm.startPrank(gnosisSafe);
-        marketFactoryInstanceV2.grantRole(UPGRADER_ROLE, address(timelockInstance));
-        assertTrue(
-            marketFactoryInstanceV2.hasRole(UPGRADER_ROLE, address(timelockInstance)), "Should grant UPGRADER_ROLE"
-        );
-        marketFactoryInstanceV2.revokeRole(UPGRADER_ROLE, address(timelockInstance));
-        assertFalse(
-            marketFactoryInstanceV2.hasRole(UPGRADER_ROLE, address(timelockInstance)), "Should revoke UPGRADER_ROLE"
-        );
+        marketFactoryInstanceV2.grantRole(UPGRADER_ROLE, alice);
+        assertTrue(marketFactoryInstanceV2.hasRole(UPGRADER_ROLE, alice), "Should grant UPGRADER_ROLE");
+        marketFactoryInstanceV2.revokeRole(UPGRADER_ROLE, alice);
+        assertFalse(marketFactoryInstanceV2.hasRole(UPGRADER_ROLE, alice), "Should revoke UPGRADER_ROLE");
         vm.stopPrank();
     }
 
@@ -806,7 +802,7 @@ contract BasicDeploy is Test {
         LendefiPoRFeed porFeedImpl = new LendefiPoRFeed();
 
         // Get network-specific addresses
-        (address networkUSDC, address networkWETH, address usdcWethPool) = getNetworkAddresses();
+        (address networkUSDC, address networkWETH, address UsdcWethPool) = getNetworkAddresses();
 
         // Deploy factory using UUPS pattern with direct proxy deployment
         bytes memory factoryData = abi.encodeCall(
@@ -818,7 +814,7 @@ contract BasicDeploy is Test {
                 address(ecoInstance),
                 networkUSDC,
                 networkWETH,
-                usdcWethPool
+                UsdcWethPool
             )
         );
         address payable factoryProxy = payable(Upgrades.deployUUPSProxy("LendefiMarketFactory.sol", factoryData));
@@ -858,6 +854,15 @@ contract BasicDeploy is Test {
         vm.prank(gnosisSafe);
         marketFactoryInstance.addAllowedBaseAsset(baseAsset);
 
+        // Setup governance tokens for charlie (required for permissionless market creation)
+        // Transfer governance tokens from guardian to charlie (guardian received DEPLOYER_SHARE during TGE)
+        vm.prank(guardian);
+        tokenInstance.transfer(charlie, 10000 ether); // Transfer 10,000 tokens (more than the 1000 required)
+
+        // Charlie approves factory to spend governance tokens
+        vm.prank(charlie);
+        tokenInstance.approve(address(marketFactoryInstance), 100 ether); // Approve the 100 tokens that will be transferred
+
         // Create market via factory (charlie as market owner)
         vm.prank(charlie);
         marketFactoryInstance.createMarket(baseAsset, name, symbol);
@@ -895,6 +900,12 @@ contract BasicDeploy is Test {
         // if (address(assetsInstance) == address(0)) _deployAssetsModule();
 
         if (address(usdcInstance) == address(0)) usdcInstance = new USDC();
+
+        // Initialize TGE if not already done (gives guardian initial token allocation)
+        if (tokenInstance.tge() == 0) {
+            vm.prank(guardian);
+            tokenInstance.initializeTGE(address(ecoInstance), address(treasuryInstance));
+        }
 
         // Deploy market factory
         _deployMarketFactory();
